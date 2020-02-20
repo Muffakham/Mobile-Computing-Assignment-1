@@ -1,11 +1,17 @@
 package com.example.assignment1;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -35,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
                             "mouth", "some", "communicate", "write", "create", "pretend", "sister",
                             "man", "one", "drive", "perfect", "mother"
                             };
+    private final int REQUEST_PERMISSION_PHONE_STATE=1;
     String[] urlList = {
             "https://www.signingsavvy.com/media/mp4-ld/6/6442.mp4",
             "https://www.signingsavvy.com/media/mp4-ld/23/23234.mp4",
@@ -78,9 +85,10 @@ public class MainActivity extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 }
                 else {
-                    //downloadFile(urlPath, selectedGesture);
-                    ProgressBack PB = new ProgressBack();
-                    PB.execute("");
+                    showPhoneStatePermission();
+
+                    //ProgressBack PB = new ProgressBack();
+                    //PB.execute("");
                 }
             }
         });
@@ -112,7 +120,51 @@ public class MainActivity extends AppCompatActivity {
 
     private void downloadFile(String fileURL, String fileName) {
 
-        final int TIMEOUT_CONNECTION = 5000;//5sec
+
+
+
+
+
+
+
+
+            String filePath=Environment.getExternalStorageDirectory() + File.separator + "SignLanguage";
+
+            File folder = new File(filePath);
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            try {
+
+                Uri downloadUri = Uri.parse(fileURL);
+                DownloadManager.Request request = new DownloadManager.Request(downloadUri);
+
+                request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+                request.allowScanningByMediaScanner();
+
+                request.setDestinationInExternalPublicDir("/SignLanguage/",fileName);
+                request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+                request.setVisibleInDownloadsUi(true);
+                DownloadManager downloadManager = (DownloadManager)getApplicationContext().getSystemService(DOWNLOAD_SERVICE);
+                long id= downloadManager.enqueue(request);
+                Toast.makeText(this, fileName, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, filePath, Toast.LENGTH_LONG).show();
+
+            }
+
+            catch (Exception ex){
+                Toast.makeText(this, ex.toString(), Toast.LENGTH_LONG).show();
+            }
+
+
+
+
+
+
+
+        /*final int TIMEOUT_CONNECTION = 5000;//5sec
         final int TIMEOUT_SOCKET = 30000;//30sec
 
         long startTime = System.currentTimeMillis();
@@ -144,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
             f.close();
         } catch (Exception e) {
             Log.d("Error....", e.toString());
-        }
+        }*/
 
     }
     /*public long downloadVideos(String path, String fileName)
@@ -227,7 +279,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private class ProgressBack extends AsyncTask<String,String,String> {
+    /*private class ProgressBack extends AsyncTask<String,String,String> {
         ProgressDialog PD;
         @Override
         protected void onPreExecute() {
@@ -247,6 +299,44 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+    }*/
+
+    private void showPhoneStatePermission() {
+        int permissionCheck = ContextCompat.checkSelfPermission(
+                this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                showExplanation("Permission Needed", "Rationale", Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUEST_PERMISSION_PHONE_STATE);
+            } else {
+                requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, REQUEST_PERMISSION_PHONE_STATE);
+            }
+        } else {
+
+            downloadFile(urlPath, selectedGesture);
+            Toast.makeText(MainActivity.this, "Permission (already) Granted!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void showExplanation(String title,
+                                 String message,
+                                 final String permission,
+                                 final int permissionRequestCode) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        requestPermission(permission, permissionRequestCode);
+                        downloadFile(urlPath, selectedGesture);
+                    }
+                });
+        builder.create().show();
+    }
+
+    private void requestPermission(String permissionName, int permissionRequestCode) {
+        ActivityCompat.requestPermissions(this,
+                new String[]{permissionName}, permissionRequestCode);
     }
 
 }
