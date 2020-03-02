@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -42,41 +44,98 @@ public class MainActivity extends AppCompatActivity {
                             "man", "one", "drive", "perfect", "mother"
                             };
     private final int REQUEST_PERMISSION_PHONE_STATE=1;
-    String[] urlList = {
-            "https://www.signingsavvy.com/media/mp4-ld/6/6442.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/23/23234.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/22/22976.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/22/22197.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/26/26971.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/24/24977.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/7/7042.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/26/26085.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/22/22188.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/23/23931.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/22/22897.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/27/27923.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/22/22337.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/25/25901.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/21/21587.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/21/21568.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/26/26492.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/23/23918.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/24/24791.mp4",
-            "https://www.signingsavvy.com/media/mp4-ld/21/21571.mp4"
+    int [] list = {
+            R.raw.buy,
+            R.raw.house,
+            R.raw.fun,
+            R.raw.hope,
+            R.raw.arrive,
+            R.raw.really,
+            R.raw.read,
+            R.raw.lip,
+            R.raw.mouth,
+            R.raw.some,
+            R.raw.communicate,
+            R.raw.wirte,
+            R.raw.create,
+            R.raw.pretend,
+            R.raw.sister,
+            R.raw.man,
+            R.raw.one,
+            R.raw.drive,
+            R.raw.perfect,
+            R.raw.mother,
     };
+    EditText lastname;
+    /*String[] urlList = {
+
+            "android.resource://" + getPackageName() + "/" + R.raw.buy,
+            "android.resource://" + getPackageName() + "/" + R.raw.house,
+            "android.resource://" + getPackageName() + "/" + R.raw.fun,
+            "android.resource://" + getPackageName() + "/" + R.raw.hope,
+            "android.resource://" + getPackageName() + "/" + R.raw.arrive,
+            "android.resource://" + getPackageName() + "/" + R.raw.really,
+            "android.resource://" + getPackageName() + "/" + R.raw.read,
+            "android.resource://" + getPackageName() + "/" + R.raw.lip,
+            "android.resource://" + getPackageName() + "/" + R.raw.mouth,
+            "android.resource://" + getPackageName() + "/" + R.raw.some,
+            "android.resource://" + getPackageName() + "/" + R.raw.communicate,
+            "android.resource://" + getPackageName() + "/" + R.raw.wirte,
+            "android.resource://" + getPackageName() + "/" + R.raw.create,
+            "android.resource://" + getPackageName() + "/" + R.raw.pretend,
+            "android.resource://" + getPackageName() + "/" + R.raw.sister,
+            "android.resource://" + getPackageName() + "/" + R.raw.man,
+            "android.resource://" + getPackageName() + "/" + R.raw.one,
+            "android.resource://" + getPackageName() + "/" + R.raw.perfect,
+            "android.resource://" + getPackageName() + "/" + R.raw.mother,
+
+    };*/
     DownloadManager downloadManager;
     Spinner spin;
     Button down;
     String selectedGesture = "";
-    String urlPath = "";
+    int urlPath=0;
+    Button watch ;
+    String FPath;
+    String ln = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        lastname = (EditText)findViewById(R.id.editText);
+        //down = (Button)findViewById(R.id.button);
+        watch = (Button)findViewById(R.id.button3);
+        showPhoneStatePermission();
+        watch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ln = lastname.getText().toString();
 
-        down = (Button)findViewById(R.id.button);
-        down.setOnClickListener(new View.OnClickListener() {
+                if (urlPath == 0 && selectedGesture.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Please select a gesture", Toast.LENGTH_LONG).show();
+
+
+
+
+                } else {
+
+                    if(ln.equalsIgnoreCase(""))
+                    {
+                        Toast.makeText(MainActivity.this, "Please select a gesture", Toast.LENGTH_LONG).show();
+                    }
+                    else {
+
+                        Intent intent = new Intent(MainActivity.this, PracticeActivity.class);
+                        intent.putExtra("File_path", urlPath);
+                        intent.putExtra("File_name", selectedGesture);
+                        intent.putExtra("lastname",ln);
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
+        /*down.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (selectedGesture.equals("") && urlPath.equals(""))
@@ -87,18 +146,19 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     showPhoneStatePermission();
 
+
                     //ProgressBack PB = new ProgressBack();
                     //PB.execute("");
                 }
             }
-        });
+        });*/
         spin = (Spinner) findViewById(R.id.spinner);
         spin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
 
                 selectedGesture = gestureList[position];
-                urlPath = urlList[position];
+                urlPath = list[position];
                 System.out.println("in the item selected function");
 
                 //Intent i = new Intent();
@@ -122,29 +182,33 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+            String filePath= getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)+"";
 
 
 
+            //String ff =
+            //File file=new File(getExternalFilesDir(null),fileName+".mp4");
 
+            //File folder = new File(filePath);
 
-
-            String filePath=Environment.getExternalStorageDirectory() + File.separator + "SignLanguage";
-
-            File folder = new File(filePath);
-
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
+            //if (!folder.exists()) {
+              //  folder.mkdirs();
+            //}
 
             try {
 
                 Uri downloadUri = Uri.parse(fileURL);
                 DownloadManager.Request request = new DownloadManager.Request(downloadUri);
 
+
+
                 request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
                 request.allowScanningByMediaScanner();
-
-                request.setDestinationInExternalPublicDir("/SignLanguage/",fileName);
+                FPath = Environment.getExternalStorageDirectory().getPath() + "/MyExternalStorageAppPath/"+ fileName;
+                //request.setDestinationInExternalFilesDir(MainActivity.this,  requireContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName+".mp4");
+                //request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS,fileName+".mp4");
+                //request.setDestinationInExternalPublicDir(Environment)
+                    //request.setDestinationUri(Uri.fromFile(file));
                 request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
                 request.setVisibleInDownloadsUi(true);
                 DownloadManager downloadManager = (DownloadManager)getApplicationContext().getSystemService(DOWNLOAD_SERVICE);
@@ -277,8 +341,6 @@ public class MainActivity extends AppCompatActivity {
 
     }*/
 
-
-
     /*private class ProgressBack extends AsyncTask<String,String,String> {
         ProgressDialog PD;
         @Override
@@ -313,7 +375,7 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
 
-            downloadFile(urlPath, selectedGesture);
+            //downloadFile(urlPath, selectedGesture);
             Toast.makeText(MainActivity.this, "Permission (already) Granted!", Toast.LENGTH_SHORT).show();
         }
     }
@@ -328,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         requestPermission(permission, permissionRequestCode);
-                        downloadFile(urlPath, selectedGesture);
+                        //downloadFile(urlPath, selectedGesture);
                     }
                 });
         builder.create().show();
