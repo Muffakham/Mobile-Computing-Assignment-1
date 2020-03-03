@@ -65,4 +65,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <EditText
+        android:id="@+id/editText2"
+        android:layout_width="251dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="79dp"
+        android:layout_marginTop="165dp"
+        android:layout_marginEnd="81dp"
+        android:layout_marginBottom="17dp"
+        android:ems="10"
+        android:hint="Enter local server IP address"
+        android:inputType="textPersonName"
+        app:layout_constraintBottom_toTopOf="@+id/editText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -36,6 +36,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
             R.raw.mother,
     };
     EditText lastname;
+    EditText ipaddr;
     /*String[] urlList = {
 
             "android.resource://" + getPackageName() + "/" + R.raw.buy,
@@ -104,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         lastname = (EditText)findViewById(R.id.editText);
+        ipaddr = (EditText)findViewById(R.id.editText2);
         //down = (Button)findViewById(R.id.button);
         watch = (Button)findViewById(R.id.button3);
         showPhoneStatePermission();
@@ -122,15 +126,37 @@ public class MainActivity extends AppCompatActivity {
 
                     if(ln.equalsIgnoreCase(""))
                     {
-                        Toast.makeText(MainActivity.this, "Please select a gesture", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "please entet your Name", Toast.LENGTH_LONG).show();
                     }
                     else {
+                        String f = ipaddr.getText().toString();
+                        String zeroTo255
+                                = "([01]?[0-9]{1,2}|2[0-4][0-9]|25[0-5])";
 
-                        Intent intent = new Intent(MainActivity.this, PracticeActivity.class);
-                        intent.putExtra("File_path", urlPath);
-                        intent.putExtra("File_name", selectedGesture);
-                        intent.putExtra("lastname",ln);
-                        startActivity(intent);
+                        String IP_REGEXP
+                                = zeroTo255 + "\\." + zeroTo255 + "\\."
+                                + zeroTo255 + "\\." + zeroTo255;
+
+                        Pattern IP_PATTERN
+                                = Pattern.compile(IP_REGEXP);
+                        Matcher m = IP_PATTERN.matcher(f);
+                        if (f.equals("")) {
+                            Toast.makeText(MainActivity.this, "please enter Valid IP Address", Toast.LENGTH_LONG).show();
+
+                        }
+                        else if (!m.matches())
+                        {
+                            Toast.makeText(MainActivity.this, "please enter Valid IP Address", Toast.LENGTH_LONG).show();
+
+                        }else {
+
+                            Intent intent = new Intent(MainActivity.this, PracticeActivity.class);
+                            intent.putExtra("File_path", urlPath);
+                            intent.putExtra("File_name", selectedGesture);
+                            intent.putExtra("lastname", ln);
+                            intent.putExtra("IP_ADDR",f);
+                            startActivity(intent);
+                        }
                     }
                 }
             }

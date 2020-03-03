@@ -1,21 +1,21 @@
 package com.example.assignment1;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.Policy;
-import java.security.Timestamp;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Timer;
+
 
 import android.app.Activity;
-import android.content.Context;
+
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.Enumeration;
+
 import android.hardware.Camera;
-import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -28,14 +28,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-//import com.facebook.stetho.common.LogUtil;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
 
-/*import static com.example.amine.learn2sign.LoginActivity.INTENT_ID;
-import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED;
-import static com.example.amine.learn2sign.LoginActivity.INTENT_TIME_WATCHED_VIDEO;
-import static com.example.amine.learn2sign.LoginActivity.INTENT_URI;
-import static com.example.amine.learn2sign.LoginActivity.INTENT_WORD;*/
+import cz.msebera.android.httpclient.Header;
+
 
 public class videoActivity extends Activity implements SurfaceHolder.Callback {
 
@@ -44,19 +44,19 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
     private SurfaceView mSurfaceView;
     private SurfaceHolder mHolder;
     private Button mToggleButton;
-    private TextView tv_timer;
+
     private TextView tv_time;
     Intent returnIntent;
     String returnfile;
     videoActivity activity;
     String word;
     private boolean mInitSuccesful;
-    SharedPreferences sharedPreferences;
-    CountDownTimer timer;
+
     CountDownTimer time;
-    long time_watched;
+    //long time_watched;
     Button upld;
     String lastname;
+    String ipdr;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,31 +68,100 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onClick(View v) {
 
+
+
+                String server_ip = ipdr;
+                //Log.d("msg",server_ip);
+                RequestParams params = new RequestParams();
+
+
+                    try {
+                        params.put("uploaded_file", new File(returnfile));
+                        params.put("id","mmoham64");
+                        params.put("accept","1");
+
+                    } catch(FileNotFoundException e) {}
+
+
+                    // send request
+                    AsyncHttpClient client = new AsyncHttpClient();
+
+                    client.post("http://"+server_ip +"/Assignment1/upload_video.php", params, new AsyncHttpResponseHandler() {
+                        @Override
+                        public void onSuccess(int statusCode, Header[] headers, byte[] bytes) {
+                            // handle success response
+                            Log.e("msg success",statusCode+"");
+                            if(statusCode==200) {
+                                Toast.makeText(videoActivity.this, "Success", Toast.LENGTH_SHORT).show();
+                                activity.setResult(8888,returnIntent);
+                                activity.finish();
+
+
+                                                            }
+                            else {
+                                Toast.makeText(videoActivity.this, "Failed", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, Header[] headers, byte[] bytes, Throwable throwable) {
+                            // handle failure response
+                            Log.e("msg fail",statusCode+"");
+
+                            //Toast.makeText(videoActivity.this, "Something Went Wrong", Toast.LENGTH_SHORT).show();
+
+                        }
+                        @Override
+                        public void onProgress(long bytesWritten, long totalSize) {
+
+
+                            super.onProgress(bytesWritten, totalSize);
+                        }
+
+
+                        @Override
+                        public void onStart() {
+
+                            super.onStart();
+                        }
+
+                        @Override
+                        public void onFinish() {
+
+                            super.onFinish();
+                        }
+                    });
+
+
+
             }
         });
         activity = this;
         returnIntent = new Intent();
-        // we shall take the video in landscape orientation
-        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT);
-        if(getIntent().hasExtra("INTENT_WORD")) {
+        /*if(getIntent().hasExtra("INTENT_WORD")) {
             word = getIntent().getStringExtra("INTENT_WORD");
 
             Log.d("State","State name in video activity " + word);
+        }*/
+
+        if(getIntent().hasExtra("IP_ADDR"))
+        {
+            ipdr = getIntent().getStringExtra("IP_ADDR");
         }
         if(getIntent().hasExtra("LAST_NAME"))
         {
             lastname = getIntent().getStringExtra("LAST_NAME");
         }
-        if(getIntent().hasExtra("INTENT_TIME_WATCHED")) {
+       /* if(getIntent().hasExtra("INTENT_TIME_WATCHED")) {
             time_watched = getIntent().getLongExtra("INTENT_TIME_WATCHED",0);
-        }
+        }*/
         mSurfaceView = (SurfaceView) findViewById(R.id.sv_camera);
         mHolder = mSurfaceView.getHolder();
         mHolder.addCallback(this);
-        //tv_timer = (TextView) findViewById(R.id.tv_timer);
+
         tv_time = (TextView) findViewById(R.id.tv_time);
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-        //sharedPreferences =  this.getSharedPreferences(getPackageName(), Context.MODE_PRIVATE);
+
 
         mToggleButton = (Button) findViewById(R.id.bt_start);
         time = new CountDownTimer(6000,1000) {
@@ -105,57 +174,67 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             @Override
             public void onFinish() {
                 mMediaRecorder.stop();
+                mToggleButton.setText("Start Recording");
+                mToggleButton.setEnabled(false);
                 mMediaRecorder.reset();
                 if(time!=null) {
                     time.cancel();
+
                 }
-                //returnIntent.putExtra("INTENT_URI",returnfile);
+
+                returnIntent.putExtra("INTENT_URI",returnfile);
                 //returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
-                //activity.setResult(8888,returnIntent);
+                activity.setResult(8888,returnIntent);
+
+
                 //activity.finish();
             }
         };
-        mToggleButton.setOnClickListener(new OnClickListener() {
-            @Override
-            // toggle video recording
-            public void onClick(final View v) {
 
-                        //tv_timer.setVisibility(View.GONE);
+            mToggleButton.setOnClickListener(new OnClickListener() {
+                @Override
+                // toggle video recording
+                public void onClick(final View v) {
+
+
+                    if(((Button) v).getText().toString().equalsIgnoreCase("start recording"))
+                    {
                         ((Button) v).setText("Stop Recording");
                         ((Button) v).setEnabled(true);
                         mMediaRecorder.start();
                         time.start();
-
-            }
-        });
-        if (mToggleButton.getText().toString().equals("Stop Recording")) {
-            mToggleButton.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mMediaRecorder.stop();
-                    mMediaRecorder.reset();
-                    ((Button) v).setText("Start Recording");
-                    if(time!=null) {
-                      time.cancel();
                     }
-                    returnIntent.putExtra("INTENT_URI",returnfile);
-                    returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
 
-                    activity.setResult(8888,returnIntent);
-                    activity.finish();
+                    else{
+
+                        mMediaRecorder.stop();
+                        mMediaRecorder.reset();
+                        ((Button) v).setText("Start Recording");
+                        ((Button) v).setEnabled(false);
+                        if (time != null) {
+                            time.cancel();
+                        }
+                        returnIntent.putExtra("INTENT_URI", returnfile);
+                        activity.setResult(8888,returnIntent);
+                        //activity.finish();
+                    }
+
 
                 }
             });
 
-        }
-    }
 
-    /* Init the MediaRecorder, the order the methods are called is vital to
-     * its correct functioning */
+
+
+
+
+
+        }
+
+
+
     boolean fileCreated = false;
     private void initRecorder(Surface surface) throws IOException {
-        // It is very important to unlock the camera before doing setCamera
-        // or it will results in a black preview
 
         if(mCamera == null) {
             mCamera = Camera.open(1);
@@ -173,13 +252,9 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
         mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
         mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
         int i=0;
-        SimpleDateFormat s = new SimpleDateFormat("ddMMyyyyhhmmss", Locale.US);
-        String format = s.format(new Date());
         File file = new File(Environment.getExternalStorageDirectory().getPath() + "/Assignment1/"
                 +"GESTURE_PRACTICE_"+"0_"+lastname  + ".mp4");
 
-
-        //just to be safe
         while(file.exists()) {
             i++;
             file = new File(Environment.getExternalStorageDirectory().getPath() + "/Assignment1/"
@@ -191,51 +266,42 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             Log.e("file path",file.getPath());
             returnfile = file.getPath();
         }
-        Log.d("return",returnfile+"");
         returnIntent.putExtra("INTENT_URI",returnfile);
-        returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
+       // returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
         activity.setResult(8888,returnIntent);
 
-        Log.d("return2",""+returnfile);
 
         mMediaRecorder.setOutputFile(file.getPath());
-        // No limit. Check the space on disk!
         mMediaRecorder.setMaxDuration(5000);
         mMediaRecorder.setVideoSize(320,240);
         mMediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
             @Override
             public void onInfo(MediaRecorder mediaRecorder, int i, int i1) {
-                if (i == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {    //finish after max duration has been reached
+                if (i == MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED) {
                     mMediaRecorder.stop();
                     mMediaRecorder.reset();
                     if(time!=null) {
                         time.cancel();
                     }
                     returnIntent.putExtra("INTENT_URI",returnfile);
-                    returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
+                   // returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
                     activity.setResult(8888,returnIntent);
-                    activity.finish();
                 }
 
             }
         });
 
-        //mMediaRecorder.setVideoFrameRate(30);
+
         mMediaRecorder.setOrientationHint(270);
-        //mMediaRecorder.setVideoSize(640, 480);
-        mMediaRecorder.setVideoFrameRate(30); //might be auto-determined due to lighting
+
+        mMediaRecorder.setVideoFrameRate(30);
         mMediaRecorder.setVideoEncodingBitRate(3000000);
         mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);// MPEG_4_SP
-        //mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-
-        //mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
         try {
 
             mMediaRecorder.prepare();
         } catch (IllegalStateException e) {
-            // This is thrown if the previous calls are not called with the
-            // proper order
             e.printStackTrace();
         }
 
@@ -250,9 +316,9 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             time.cancel();
 
         returnIntent.putExtra("INTENT_URI",returnfile);
-        returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
+       // returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
         activity.setResult(7777,returnIntent);
-        activity.finish();
+        //activity.finish();
 
         super.onBackPressed();
     }
@@ -265,7 +331,6 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             if(!mInitSuccesful)
                 initRecorder(mHolder.getSurface());
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -278,7 +343,6 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-        //shutdown();
     }
 
     @Override
@@ -286,18 +350,35 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
                                int height) {}
 
     private void shutdown() {
-        // Release MediaRecorder and especially the Camera as it's a shared
-        // object that can be used by other applications
+
         mMediaRecorder.reset();
         mMediaRecorder.release();
+        //hello
         mCamera.release();
-        // once the objects have been released they can't be reused
         mMediaRecorder = null;
         returnIntent.putExtra("INTENT_URI",returnfile);
-        returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
+       // returnIntent.putExtra("INTENT_TIME_WATCHED_VIDEO" , time_watched);
         activity.setResult(7777,returnIntent);
         mCamera = null;
-        //timer.cancel();
         finish();
     }
+    static InetAddress ip() throws SocketException {
+        Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+        NetworkInterface ni;
+        while (nis.hasMoreElements()) {
+            ni = nis.nextElement();
+            if (!ni.isLoopback()/*not loopback*/ && ni.isUp()/*it works now*/) {
+                for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
+                    //filter for ipv4/ipv6
+                    if (ia.getAddress().getAddress().length == 4) {
+                        //4 for ipv4, 16 for ipv6
+                        return ia.getAddress();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
 }
