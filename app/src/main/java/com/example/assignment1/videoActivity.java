@@ -169,16 +169,22 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
             public void onTick(long l) {
                 int a = (int) (l / 1000);
                 tv_time.setText(a + " ");
+                if(a<1)
+                {
+                    mToggleButton.setEnabled(false);
+                }
             }
 
             @Override
             public void onFinish() {
                 mMediaRecorder.stop();
-                mToggleButton.setText("Start Recording");
-                mToggleButton.setEnabled(false);
+                //mToggleButton.setText("Start Recording");
+
+                //mToggleButton.setEnabled(false);
                 mMediaRecorder.reset();
                 if(time!=null) {
                     time.cancel();
+
 
                 }
 
@@ -190,6 +196,8 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
                 //activity.finish();
             }
         };
+
+
 
             mToggleButton.setOnClickListener(new OnClickListener() {
                 @Override
@@ -379,6 +387,8 @@ public class videoActivity extends Activity implements SurfaceHolder.Callback {
         }
         return null;
     }
+
+
 
 
 }
